@@ -204,7 +204,7 @@
       document.getElementById("resultScreen").classList.remove("hidden");
       document.getElementById("hasil").innerText = `Nama: ${nama}\nKelas: ${kelas}\nNilai: ${nilai}`;
 
-      // --- Kirim ke Google Sheets ---
+    
       fetch("https://script.google.com/macros/s/AKfycbyL2RRC1Cj7r2pJbj9yigYuhG76tmgLsWjKlJZ_x10Mb4vN6BR6770FiFTcukTOeAY9Wg/exec", {
         method: "POST",
         body: JSON.stringify({nama: nama, kelas: kelas, nilai: nilai})
