@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ulangan Informatika Kelas 9</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #1e3c72, #2a5298);
+      margin: 0;
+      padding: 0;
+      color: #fff;
+    }
+    .container {
+      width: 90%;
+      max-width: 900px;
+      margin: 40px auto;
+      background: #ffffff20;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    h1, h2, h3 {
+      text-align: center;
+    }
+    .hidden {
+      display: none;
+    }
+    label, p {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    input, select {
+      font-size: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin: 10px 0;
+      width: 100%;
+    }
+    button {
+      padding: 15px 25px;
+      margin: 15px 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .btn-next {
+      background-color: #28a745;
+      color: white;
+    }
+    .btn-prev {
+      background-color: #6c757d;
+      color: white;
+    }
+    .btn-submit {
+      background-color: #007bff;
+      color: white;
+    }
+    .option {
+      display: block;
+      background: #ffffff30;
+      padding: 15px;
+      margin: 12px 0;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .option input {
+      margin-right: 10px;
+      transform: scale(1.3);
+    }
+    .progress {
+      width: 100%;
+      background: #444;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .progress-bar {
+      height: 20px;
+      background: #28a745;
+      width: 0%;
+      border-radius: 10px;
+      transition: width 0.5s;
+    }
+    .result {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="loginScreen">
+    <h1>Ulangan Informatika</h1>
+    <h3>Kelas 9</h3>
+    <label for="nama">Masukkan Nama:</label>
+    <input type="text" id="nama" placeholder="Nama Anda">
+
+    <label for="kelas">Pilih Kelas:</label>
+    <select id="kelas">
+      <option value="">-- Pilih Kelas --</option>
+      <option value="9A">9A</option>
+      <option value="9B">9B</option>
+      <option value="9C">9C</option>
+    </select>
+
+    <button class="btn-submit" onclick="mulaiUjian()">Mulai Ulangan</button>
+  </div>
+
+  <div class="container hidden" id="quizScreen">
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <h2 id="soalText"></h2>
+    <div id="options"></div>
+    <div style="text-align:center;">
+      <button class="btn-prev" onclick="prevSoal()">Sebelumnya</button>
+      <button class="btn-next" onclick="nextSoal()">Selanjutnya</button>
+    </div>
+  </div>
+
+  <div class="container hidden" id="resultScreen">
+    <h2>Hasil Ulangan</h2>
+    <div class="result" id="hasil"></div>
+    <button class="btn-submit" onclick="downloadPDF()">Download PDF</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const { jsPDF } = window.jspdf;
+
+    const soal = [
+      {q: "Apa kepanjangan dari HTML?", o:["Hyperlinks and Text Markup Language", "Home Tool Markup Language", "Hyper Text Markup Language", "Hyper Tool Multi Language"], a:2},
+      {q: "Manakah yang termasuk perangkat input?", o:["Printer", "Scanner", "Monitor", "Speaker"], a:1},
+      {q: "Shortcut untuk copy di Windows adalah...", o:["Ctrl + V", "Ctrl + C", "Ctrl + X", "Ctrl + Z"], a:1},
+      {q: "Dalam jaringan komputer, LAN kepanjangan dari...", o:["Large Area Network", "Local Area Network", "Line Access Network", "Logical Area Node"], a:1},
+      {q: "Software untuk mengetik dokumen adalah...", o:["Microsoft Excel", "Microsoft Word", "Corel Draw", "Adobe Photoshop"], a:1}
+    ];
+
+    let current = 0;
+    let jawaban = [];
+    let nama = "";
+    let kelas = "";
+
+    function mulaiUjian(){
+      nama = document.getElementById("nama").value;
+      kelas = document.getElementById("kelas").value;
+      if(nama === "" || kelas === ""){
+        alert("Isi nama dan pilih kelas terlebih dahulu!");
+        return;
+      }
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("quizScreen").classList.remove("hidden");
+      tampilSoal();
+    }
+
+    function tampilSoal(){
+      let s = soal[current];
+      document.getElementById("soalText").innerText = (current+1)+". "+s.q;
+      let opsi = "";
+      s.o.forEach((opt, i)=>{
+        let checked = jawaban[current] === i ? "checked" : "";
+        opsi += `<label class='option'><input type='radio' name='jawaban' value='${i}' ${checked} onchange='pilihJawaban(${i})'> ${opt}</label>`;
+      });
+      document.getElementById("options").innerHTML = opsi;
+      document.getElementById("progressBar").style.width = ((current+1)/soal.length*100)+"%";
+    }
+
+    function pilihJawaban(i){
+      jawaban[current] = i;
+    }
+
+    function nextSoal(){
+      if(current < soal.length-1){
+        current++;
+        tampilSoal();
+      } else {
+        selesai();
+      }
+    }
+
+    function prevSoal(){
+      if(current > 0){
+        current--;
+        tampilSoal();
+      }
+    }
+
+    function selesai(){
+      let skor = 0;
+      soal.forEach((s,i)=>{
+        if(jawaban[i] === s.a) skor++;
+      });
+      let nilai = (skor/soal.length)*100;
+      document.getElementById("quizScreen").classList.add("hidden");
+      document.getElementById("resultScreen").classList.remove("hidden");
+      document.getElementById("hasil").innerText = `Nama: ${nama}\nKelas: ${kelas}\nNilai: ${nilai}`;
+
+      // --- Kirim ke Google Sheets ---
+      fetch("https://script.google.com/macros/s/AKfycbyL2RRC1Cj7r2pJbj9yigYuhG76tmgLsWjKlJZ_x10Mb4vN6BR6770FiFTcukTOeAY9Wg/exec", {
+        method: "POST",
+        body: JSON.stringify({nama: nama, kelas: kelas, nilai: nilai})
+      })
+      .then(res => res.text())
+      .then(data => console.log("Data terkirim:", data))
+      .catch(err => console.error("Error:", err));
+    }
+
+    function downloadPDF(){
+      const doc = new jsPDF();
+      doc.text("Hasil Ulangan Informatika", 20, 20);
+      doc.text("Nama: "+nama, 20, 40);
+      doc.text("Kelas: "+kelas, 20, 50);
+      let skor = 0;
+      soal.forEach((s,i)=>{
+        if(jawaban[i] === s.a) skor++;
+      });
+      let nilai = (skor/soal.length)*100;
+      doc.text("Nilai: "+nilai, 20, 60);
+      doc.save("hasil_ulangan.pdf");
+    }
+  </script>
+</body>
+</html>
